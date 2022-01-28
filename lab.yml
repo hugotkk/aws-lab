@@ -1,7 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
+  NumberOfInstance:
+    Default: 1
+    Description: Number of instance
+    Type: Number
   InstanceType:
-    Default: t2.micro
+    Default: t2.medium
     Description: Instance Type
     Type: String
   ImageId:
@@ -19,31 +23,59 @@ Parameters:
     Description: My IP Address
     Type: String
 Resources:
-  Web01:
-    Type: AWS::EC2::Instance
+  myASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      ImageId: !Ref ImageId
-      KeyName: !Ref KeyName
-      InstanceType: !Ref InstanceType
-      SecurityGroups:
-      - !Ref Ec2SecurityGroup
-      BlockDeviceMappings:
-      - DeviceName: /dev/sda1
-        Ebs:
-          VolumeSize: !Ref DiskSize
-    DependsOn: Ec2SecurityGroup
-  Web02:
-    Type: AWS::EC2::Instance
+      AvailabilityZones:
+      - us-east-2a
+      - us-east-2b
+      MinSize: !Ref NumberOfInstance
+      MaxSize: !Ref NumberOfInstance
+      DesiredCapacity: !Ref NumberOfInstance
+      LaunchTemplate:
+        LaunchTemplateId: !Ref myTemplate
+        Version: !GetAtt myTemplate.LatestVersionNumber
+  IamRole:
+    Type: "AWS::IAM::Role"
     Properties:
-      ImageId: !Ref ImageId
-      KeyName: !Ref KeyName
-      InstanceType: !Ref InstanceType
-      SecurityGroups:
-      - !Ref Ec2SecurityGroup
-      BlockDeviceMappings:
-      - DeviceName: /dev/sda1
-        Ebs:
-          VolumeSize: !Ref DiskSize
+      RoleName: "Ec2RoleForSSM"
+      Description: "EC2 IAM role for SSM access"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      Policies: []
+  Ec2InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      InstanceProfileName: "Ec2RoleForSSM"
+      Roles:
+        - Ref: "IamRole"
+  myTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: MyLaunchTemplate
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt Ec2InstanceProfile.Arn
+        ImageId: !Ref ImageId
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupIds:
+        - !GetAtt Ec2SecurityGroup.GroupId
+        BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: !Ref DiskSize
+        InstanceMarketOptions:
+          MarketType: spot
     DependsOn: Ec2SecurityGroup
   Ec2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -54,10 +86,3 @@ Resources:
         FromPort: 0
         ToPort: 65535
         CidrIp: !Sub '${MyIp}/32'
-Outputs:
-  web01IP:
-    Description: Web01 IP
-    Value: !GetAtt Web01.PublicIp
-  web02IP:
-    Description: Web02 IP
-    Value: !GetAtt Web02.PublicIp
