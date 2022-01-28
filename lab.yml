@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  InstanceType:
+    Default: t2.micro
+    Description: Instance Type
+    Type: String
+  ImageId:
+    Default: ami-0fb653ca2d3203ac1
+    Description: AMI
+    Type: AWS::EC2::Image::Id
+  DiskSize:
+    Default: 20
+    Description: Disk Size
+    Type: String
+  KeyName:
+    Description: Private key
+    Type: AWS::EC2::KeyPair::KeyName
+  MyIp:
+    Description: My IP Address
+    Type: String
+Resources:
+  Web01:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+      - !Ref Ec2SecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/sda1
+        Ebs:
+          VolumeSize: !Ref DiskSize
+    DependsOn: Ec2SecurityGroup
+  Web02:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+      - !Ref Ec2SecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/sda1
+        Ebs:
+          VolumeSize: !Ref DiskSize
+    DependsOn: Ec2SecurityGroup
+  Ec2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow connections
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: !Sub '${MyIp}/32'
+Outputs:
+  web01IP:
+    Description: Web01 IP
+    Value: !GetAtt Web01.PublicIp
+  web02IP:
+    Description: Web02 IP
+    Value: !GetAtt Web02.PublicIp
