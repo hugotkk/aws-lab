@@ -1,0 +1,182 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  InstanceType:
+    Default: t2.micro
+    Description: Instance Type
+    Type: String
+  ImageId:
+    Default: ami-02abcf80896e78cc4
+    Description: AMI
+    Type: AWS::EC2::Image::Id
+  DiskSize:
+    Default: 20
+    Description: Disk Size
+    Type: String
+  KeyName:
+    Default: hugotse
+    Description: Private key
+    Type: AWS::EC2::KeyPair::KeyName
+  MyIp:
+    Description: My IP Address
+    Type: String
+Resources:
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-02abcf80896e78cc4
+      KeyName: !Ref KeyName
+      LaunchTemplate:
+        LaunchTemplateId: !Ref myTemplate
+        Version: !GetAtt myTemplate.LatestVersionNumber
+  IamRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "Ec2RoleForSAM"
+      Description: "EC2 IAM role for SSM access and SAM deployment"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      Policies:
+      - PolicyName: SAMDeploymentPolicy
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: CloudFormationTemplate
+              Effect: Allow
+              Action:
+                - cloudformation:CreateChangeSet
+              Resource:
+                - !Sub 'arn:aws:cloudformation:*:aws:transform/Serverless-2016-10-31'
+            - Sid: CloudFormationStack
+              Effect: Allow
+              Action:
+                - cloudformation:CreateChangeSet
+                - cloudformation:CreateStack
+                - cloudformation:DeleteStack
+                - cloudformation:DescribeChangeSet
+                - cloudformation:DescribeStackEvents
+                - cloudformation:DescribeStacks
+                - cloudformation:ExecuteChangeSet
+                - cloudformation:GetTemplateSummary
+                - cloudformation:ListStackResources
+                - cloudformation:UpdateStack
+              Resource:
+                - !Sub 'arn:aws:cloudformation:*:${AWS::AccountId}:stack/*'
+            - Sid: S3
+              Effect: Allow
+              Action:
+                - s3:CreateBucket
+                - s3:GetObject
+                - s3:PutObject
+              Resource:
+                - arn:aws:s3:::*/*
+            - Sid: ECRRepository
+              Effect: Allow
+              Action:
+                - ecr:BatchCheckLayerAvailability
+                - ecr:BatchGetImage
+                - ecr:CompleteLayerUpload
+                - ecr:CreateRepository
+                - ecr:DeleteRepository
+                - ecr:DescribeImages
+                - ecr:DescribeRepositories
+                - ecr:GetDownloadUrlForLayer
+                - ecr:GetRepositoryPolicy
+                - ecr:InitiateLayerUpload
+                - ecr:ListImages
+                - ecr:PutImage
+                - ecr:SetRepositoryPolicy
+                - ecr:UploadLayerPart
+              Resource:
+                - !Sub 'arn:aws:ecr:*:${AWS::AccountId}:repository/*'
+            - Sid: ECRAuthToken
+              Effect: Allow
+              Action:
+                - ecr:GetAuthorizationToken
+              Resource:
+                - '*'
+            - Sid: Lambda
+              Effect: Allow
+              Action:
+                - lambda:AddPermission
+                - lambda:CreateFunction
+                - lambda:DeleteFunction
+                - lambda:GetFunction
+                - lambda:GetFunctionConfiguration
+                - lambda:ListTags
+                - lambda:RemovePermission
+                - lambda:TagResource
+                - lambda:UntagResource
+                - lambda:UpdateFunctionCode
+                - lambda:UpdateFunctionConfiguration
+              Resource:
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:*'
+            - Sid: IAM
+              Effect: Allow
+              Action:
+                - iam:AttachRolePolicy
+                - iam:CreateRole
+                - iam:DeleteRole
+                - iam:PutRolePolicy
+                - iam:DetachRolePolicy
+                - iam:GetRole
+                - iam:TagRole
+              Resource:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*'
+            - Sid: IAMPassRole
+              Effect: Allow
+              Action: iam:PassRole
+              Resource: '*'
+              Condition:
+                StringEquals:
+                  iam:PassedToService: lambda.amazonaws.com
+            - Sid: APIGateway
+              Effect: Allow
+              Action:
+                - apigateway:DELETE
+                - apigateway:GET
+                - apigateway:PATCH
+                - apigateway:POST
+                - apigateway:PUT
+              Resource:
+                - !Sub 'arn:aws:apigateway:*::*'
+  Ec2InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      InstanceProfileName: "Ec2RoleForSSM"
+      Roles:
+        - Ref: "IamRole"
+  myTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: MyLaunchTemplate
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt Ec2InstanceProfile.Arn
+        ImageId: !Ref ImageId
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupIds:
+        - !GetAtt Ec2SecurityGroup.GroupId
+        BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: !Ref DiskSize
+    DependsOn: Ec2SecurityGroup
+  Ec2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow connections
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: !Sub '${MyIp}/32'
