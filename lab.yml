@@ -5,7 +5,7 @@ Parameters:
     Description: Number of instance
     Type: Number
   InstanceType:
-    Default: t2.medium
+    Default: t2.micro
     Description: Instance Type
     Type: String
   ImageId:
