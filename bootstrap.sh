@@ -14,5 +14,3 @@ sudo yum install -y docker-ce docker-ce-cli containerd.io
 sudo systemctl enable docker
 sudo systemctl start docker
 sudo usermod -a -G docker centos
-sudo -u centos git config --global user.name "Hugo Tse"
-sudo -u centos git config --global user.email hugotkk@live.hk
