@@ -17,6 +17,7 @@ Parameters:
     Description: Disk Size
     Type: String
   KeyName:
+    Default: hugotse
     Description: Private key
     Type: AWS::EC2::KeyPair::KeyName
   MyIp:
