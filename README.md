@@ -10,7 +10,7 @@ Please change KeyName to your KeyPair on aws account
 ip=$(curl ipinfo.io/ip)
 aws cloudformation create-stack \
 --stack-name test \
---template-body file://lab.yml \
+--template-body file://asg.yml \
 --parameters \
 ParameterKey=MyIp,ParameterValue=$ip \
 ParameterKey=KeyName,ParameterValue=hugotse \
