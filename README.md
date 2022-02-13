@@ -28,7 +28,7 @@ I use centos7.9 as OS for this task.
 
 I will use SSM automation to create a AMI with docker, aws, sam, git installed
 
-Then use cloudformation to create a instance to deployment
+Then use cloudformation to create an instance for the deployment
 
 # Create ami for ssm automation
 
