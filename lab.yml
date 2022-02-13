@@ -51,7 +51,7 @@ Resources:
             Action:
               - "sts:AssumeRole"
       ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
   Ec2InstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:

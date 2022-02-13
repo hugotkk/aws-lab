@@ -15,7 +15,7 @@ Resources:
               aws:SourceAccount: !Sub ${AWS::AccountId}
       RoleName: ManagedInstanceProfile
       ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/AdministratorAccess
+      - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess'
   RootInstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
@@ -39,7 +39,7 @@ Resources:
             StringEquals:
               aws:SourceAccount: !Sub ${AWS::AccountId}
             ArnLike:
-              aws:SourceArn: !Sub arn:aws:ssm:*:${AWS::AccountId}:automation-execution/*
+              aws:SourceArn: !Sub arn:${AWS::Partition}:ssm:*:${AWS::AccountId}:automation-execution/*
       ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/AdministratorAccess
+      - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess'
       Path: "/"
