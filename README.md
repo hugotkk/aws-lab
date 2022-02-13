@@ -30,7 +30,7 @@ I will use SSM automation to create a AMI with docker, aws, sam, git installed
 
 Then use cloudformation to create an instance for the deployment
 
-# Create ami for ssm automation
+# Create iam for ssm automation
 
 This is not great. Because i cannot find out the essential access right to execute this automation task. I just grant Adminstrator right to it.
 
