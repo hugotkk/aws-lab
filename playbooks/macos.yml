@@ -1,0 +1,93 @@
+- hosts: localhost
+  tasks:
+  - shell: softwareupdate --all --install --force
+  - community.general.homebrew_cask:
+      name: "{{item}}"
+      state: upgraded
+    loop:
+    - "telegram"
+    - "google-chrome"
+    - "virtualbox"
+    - "font-source-code-pro"
+    - "visual-studio"
+    - "google-drive"
+    - "nordvpn"
+    - "anki"
+    - "signal"
+    - "vlc"
+    - "imageoptim"
+    - "sublime-text"
+    - "adobe-acrobat-reader"
+    - "forticlient-vpn"
+    - "firefox"
+    - "teamviewer"
+    - "microsoft-teams"
+    - "zoom"
+    - "aws-vpn-client"
+    - "webex"
+    - "android-studio"
+  - community.general.homebrew:
+      name: "{{item}}"
+      state: upgraded
+      upgrade_all: yes
+    loop:
+    - "ansible"
+    - "terraform"
+
+    - "kubernetes-cli"
+    - "helm"
+
+    - "azure-cli"
+    - "awscli"
+    - "aws-sam-cli"
+
+    - "bash-completion"
+    - "git"
+    - "rsync"
+
+    - "openjdk"
+
+    - "docker"
+    - "jq"
+    - "jc"
+    - "vim"
+    - "tmux"
+    - "the_silver_searcher"
+    - "htop"
+    - "fzf"
+    - "pv"
+    - "node"
+    - "npm"
+
+    - "curl"
+    - "nmap"
+    - "openvpn"
+  - community.general.homebrew:
+      name: "{{item}}"
+      state: absent
+    loop:
+    - "mysql"
+    - "php"
+    - "imagemagick"
+    - "tree"
+    - "google-cloud-sdk"
+    - "youtube-dl"
+    - "yarn"
+    - "tidy-html5"
+    - "nghttp2"
+    - "nginx"
+    - "hugo"
+    - "fwatch"
+    - "ffmpeg"
+    - "dnsmasq"
+    - "ctags"
+    - "exiftool"
+    - "eslint"
+    - "gd"
+    - "gawk"
+    - "gnu-sed"
+    - "gnupg"
+    - "gnutils"
+    - "pinentry"
+    - "ubound"
+  - shell: brew cleanup
