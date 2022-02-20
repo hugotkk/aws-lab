@@ -1,0 +1,78 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  RDS with read replica and multi az
+Parameters:
+  MyIp:
+    Description: My IP Address
+    Type: String
+  DBInstanceType:
+    Default: db.t3.micro
+    Type: String
+  DBInstanceID:
+    Default: mydbinstance
+    Description: My database instance
+    Type: String
+    MinLength: '1'
+    MaxLength: '63'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: >-
+      Must begin with a letter and must not end with a hyphen or contain two
+      consecutive hyphens.
+  DBName:
+    Default: cmscore
+    Description: My database
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
+  DBAllocatedStorage:
+    Default: '20'
+    Description: The size of the database (GiB)
+    Type: Number
+    MinValue: '20'
+    MaxValue: '65536'
+    ConstraintDescription: must be between 20 and 65536 GiB.
+  DBUsername:
+    Default: hugotse
+    NoEcho: 'true'
+    Description: Username for MySQL database access
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+  DBPassword:
+    Default: sRGHf6DvQGG3tgCf
+    NoEcho: 'true'
+    Description: Password MySQL database access
+    Type: String
+
+Resources:
+  Master:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceID
+      DBInstanceClass: !Ref DBInstanceType
+      AllocatedStorage: !Ref DBAllocatedStorage
+      DBName: !Ref DBName
+      Engine: mariadb
+      EngineVersion: 10.6.5
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      StorageEncrypted: 'true'
+  ReadReplica:
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      DBInstanceClass: !Ref DBInstanceType
+      AllocatedStorage: !Ref DBAllocatedStorage
+      SourceDBInstanceIdentifier: !Ref DBInstanceID
+      StorageEncrypted: 'true'
+    DependsOn: Master
+
+Outputs:
+  MasterID:
+    Description: Master instance ID
+    Value: !Ref Master
+  ReadReplicaID:
+    Description: Read Replica instance ID
+    Value: !Ref ReadReplica
