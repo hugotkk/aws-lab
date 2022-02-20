@@ -84,7 +84,6 @@ Resources:
   IamRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: "Ec2RoleForEC2"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -99,7 +98,6 @@ Resources:
   Ec2InstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
-      InstanceProfileName: "Ec2RoleForSSM"
       Roles:
         - Ref: "IamRole"
   myTemplate:
