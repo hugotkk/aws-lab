@@ -26,6 +26,9 @@ Parameters:
 Resources:
   myASG:
     Type: AWS::AutoScaling::AutoScalingGroup
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: 'true'
     Properties:
       AvailabilityZones:
       - us-east-2a
