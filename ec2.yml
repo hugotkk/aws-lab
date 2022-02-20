@@ -35,6 +35,7 @@ Resources:
         Count: '1'
     Metadata:
       AWS::CloudFormation::Init:
+        config:
           packages:
             apt:
               silversearcher-ag: []
