@@ -1,3 +1,17 @@
+# Create single ec2 instance
+
+```
+ip=$(curl ipinfo.io/ip)
+aws cloudformation create-stack \
+--stack-name ec2 \
+--template-body file://ec2.yml \
+--parameters \
+ParameterKey=MyIp,ParameterValue=$ip \
+ParameterKey=KeyName,ParameterValue=hugotse \
+ParameterKey=InstanceType,ParameterValue=t2.micro \
+--capabilities CAPABILITY_NAMED_IAM
+```
+
 # Create 2 ec2 instances with asg
 
 The template will white current IP in security group.

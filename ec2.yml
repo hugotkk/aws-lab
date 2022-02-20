@@ -1,0 +1,137 @@
+# Reference from: https://github.com/awslabs/aws-cloudformation-templates/blob/master/aws/solutions/OperatingSystems/RHEL8_cfn-hup.cfn.yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  InstanceType:
+    Default: t2.micro
+    Description: Instance Type
+    Type: String
+  ImageId:
+    Default: ami-0fb653ca2d3203ac1
+    Description: AMI
+    Type: AWS::EC2::Image::Id
+  DiskSize:
+    Default: 20
+    Description: Disk Size
+    Type: String
+  KeyName:
+    Default: hugotse
+    Description: Private key
+    Type: AWS::EC2::KeyPair::KeyName
+  MyIp:
+    Description: My IP Address
+    Type: String
+Resources:
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
+      LaunchTemplate:
+        LaunchTemplateId: !Ref myTemplate
+        Version: !GetAtt myTemplate.LatestVersionNumber
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+        Count: '1'
+    Metadata:
+      AWS::CloudFormation::Init:
+          packages:
+            apt:
+              silversearcher-ag: []
+              emacs: []
+          files:
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: "000400"
+              owner: "root"
+              group: "root"
+            /lib/systemd/system/cfn-hup.service:
+              content: |
+                [Unit]
+                Description=cfn-hup daemon
+
+                [Service]
+                Type=simple
+                ExecStart=/opt/aws/bin/cfn-hup
+                Restart=always
+
+                [Install]
+                WantedBy=multi-user.target
+              mode: "000400"
+              owner: "root"
+              group: "root"
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.Ec2Instance.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource Ec2Instance --region ${AWS::Region}
+                runas=root
+              mode: "000400"
+              owner: "root"
+              group: "root"
+          commands:
+            01enable_cfn_hup:
+              command: systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: systemctl start cfn-hup.service
+  IamRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "Ec2RoleForEC2"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess'
+  Ec2InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      InstanceProfileName: "Ec2RoleForSSM"
+      Roles:
+        - Ref: "IamRole"
+  myTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: MyLaunchTemplate
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt Ec2InstanceProfile.Arn
+        ImageId: !Ref ImageId
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupIds:
+        - !GetAtt Ec2SecurityGroup.GroupId
+        BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: !Ref DiskSize
+        UserData:
+          Fn::Base64:
+            Fn::Sub: |
+              #!/bin/bash
+              apt-get update -y
+              mkdir -p /opt/aws/bin
+              wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+              python3 -m easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-py3-latest.tar.gz
+              /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource Ec2Instance --region ${AWS::Region}
+              /opt/aws/bin/cfn-signal -v --stack ${AWS::StackName} --resource Ec2Instance --region ${AWS::Region}
+    DependsOn: Ec2SecurityGroup
+  Ec2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow connections
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: !Sub '${MyIp}/32'
+
