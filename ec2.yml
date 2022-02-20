@@ -45,7 +45,8 @@ Resources:
           files:
             /etc/cfn/cfn-hup.conf:
               content: !Sub |
-                stack=${AWS::StackId}
+                [main]
+                stack=${AWS::StackName}
                 region=${AWS::Region}
               mode: "000400"
               owner: "root"
