@@ -39,7 +39,6 @@ Resources:
   IamRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: "Ec2RoleForSSMSAM"
       Description: "EC2 IAM role for SSM access and SAM deployment"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -55,7 +54,6 @@ Resources:
   Ec2InstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
-      InstanceProfileName: "Ec2RoleForSSM"
       Roles:
         - Ref: "IamRole"
   myTemplate:
