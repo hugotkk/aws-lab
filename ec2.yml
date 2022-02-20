@@ -126,8 +126,15 @@ Resources:
               mkdir -p /opt/aws/bin
               wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
               python3 -m easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-py3-latest.tar.gz
-              /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource Ec2Instance --region ${AWS::Region}
-              /opt/aws/bin/cfn-signal -v --stack ${AWS::StackName} --resource Ec2Instance --region ${AWS::Region}
+              /opt/aws/bin/cfn-init -v \
+              --stack ${AWS::StackName} \
+              --resource Ec2Instance \
+              --region ${AWS::Region}
+              /opt/aws/bin/cfn-signal -e $? \
+              --stack ${AWS::StackName} \
+              --resource Ec2Instance \
+              --region ${AWS::Region}
+
     DependsOn: Ec2SecurityGroup
   Ec2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
