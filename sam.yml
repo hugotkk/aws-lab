@@ -23,7 +23,7 @@ Resources:
   Ec2Instance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-02abcf80896e78cc4
+      ImageId: !Ref ImageId
       KeyName: !Ref KeyName
       LaunchTemplate:
         LaunchTemplateId: !Ref myTemplate
