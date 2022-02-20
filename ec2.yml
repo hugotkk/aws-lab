@@ -40,6 +40,8 @@ Resources:
             apt:
               silversearcher-ag: []
               emacs: []
+              jq: []
+              fzf: []
           files:
             /etc/cfn/cfn-hup.conf:
               content: !Sub |
