@@ -29,7 +29,7 @@ aws cloudformation create-stack \
 ParameterKey=MyIp,ParameterValue=$ip \
 ParameterKey=KeyName,ParameterValue=hugotse \
 ParameterKey=InstanceType,ParameterValue=t2.micro \
-ParameterKey=ImageId,ParameterValue=ami-02abcf80896e78cc4 \
+ParameterKey=ImageId,ParameterValue=ami-0fb653ca2d3203ac1 \
 ParameterKey=NumberOfInstance,ParameterValue=2 \
 --capabilities CAPABILITY_NAMED_IAM
 ```
