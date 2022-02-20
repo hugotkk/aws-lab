@@ -1,0 +1,47 @@
+Resources:
+  ManagedInstanceProfile:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - opsworks.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AWSOpsWorksCloudWatchLogs'
+      Policies:
+      - PolicyName: opsworks-service
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - cloudwatch:DescribeAlarms
+            - cloudwatch:GetMetricStatistics
+            - ec2:*
+            - ecs:*
+            - elasticloadbalancing:*
+            - iam:GetRolePolicy
+            - iam:ListInstanceProfiles
+            - iam:ListRoles
+            - iam:ListUsers
+            - rds:*
+            Resource:
+            - "*"
+          - Effect: Allow
+            Action:
+            - iam:PassRole
+            Resource: "*"
+            Condition:
+              StringEquals:
+                iam:PassedToService: ec2.amazonaws.com
+  RootInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: opsworks-service
+      Path: /
+      Roles:
+        - !Ref ManagedInstanceProfile

@@ -81,3 +81,7 @@ ParameterKey=KeyName,ParameterValue=hugotse \
 ParameterKey=ImageId,ParameterValue=ami-07ef284fb98013cc8 \
 --capabilities CAPABILITY_NAMED_IAM
 ```
+
+# Opsworks iam
+
+aws cloudformation create-stack --stack-name opsworks-iam --template-body file://opsworks-iam.yml   --capabilities  CAPABILITY_NAMED_IAM
