@@ -62,7 +62,6 @@ Resources:
   myTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
-      LaunchTemplateName: MyLaunchTemplate
       LaunchTemplateData:
         IamInstanceProfile:
           Arn: !GetAtt Ec2InstanceProfile.Arn
