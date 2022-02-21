@@ -1,5 +1,5 @@
 Resources:
-  ManagedInstanceProfile:
+  OpsworksServiceRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -8,12 +8,10 @@ Resources:
         - Effect: Allow
           Principal:
             Service:
-            - ec2.amazonaws.com
+            - opsworks.amazonaws.com
           Action: sts:AssumeRole
-      ManagedPolicyArns:
-      - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AWSOpsWorksCloudWatchLogs'
       Policies:
-      - PolicyName: opsworks-service
+      - PolicyName: OpsworksServiceRole
         PolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -38,10 +36,37 @@ Resources:
             Condition:
               StringEquals:
                 iam:PassedToService: ec2.amazonaws.com
-  RootInstanceProfile:
+  InstanceIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: opsworks-service
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - ec2:*
+            - s3:*
+            - opsworks:*
+            - iam:PassRole
+            Resource:
+            - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*"
+            Condition:
+              StringEquals:
+                iam:PassedToService: opsworks.amazonaws.com
+  InstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
-      InstanceProfileName: opsworks-service
+      InstanceProfileName: !Sub ${InstanceIAMRole}-Profile
       Path: /
       Roles:
-        - !Ref ManagedInstanceProfile
+        - !Ref InstanceIAMRole
