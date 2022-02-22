@@ -26,6 +26,7 @@
     - "aws-vpn-client"
     - "webex"
     - "android-studio"
+    - "gnupg"
   - community.general.homebrew:
       name: "{{item}}"
       state: upgraded
@@ -86,7 +87,6 @@
     - "gd"
     - "gawk"
     - "gnu-sed"
-    - "gnupg"
     - "gnutils"
     - "pinentry"
     - "ubound"
