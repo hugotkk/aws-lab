@@ -27,6 +27,7 @@
     - "webex"
     - "android-studio"
     - "gnupg"
+    - "keepassx"
   - community.general.homebrew:
       name: "{{item}}"
       state: upgraded
