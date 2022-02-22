@@ -1,0 +1,34 @@
+- hosts:
+  - redis01
+  vars:
+    device: "/dev/xvdf"
+    mount_pt: "/mnt/data"
+    fs_type: "ext4"
+  tasks:
+  - name: Create new partition
+    become: yes
+    community.general.parted:
+      device: "{{ device }}"
+      number: 1
+      state: present
+      fs_type: "{{ fs_type }}"
+    register: part_info
+  - name: Create a filesystem
+    become: yes
+    community.general.filesystem:
+      fstype: "{{ fs_type }}"
+      dev: "{{ device }}{{ item.num }}"
+    loop: "{{ part_info.partitions }}"
+  - name: Create mount point
+    become: yes
+    file:
+      path: "{{ mount_pt }}"
+      state: directory
+  - name: Mount new device
+    become: yes
+    ansible.posix.mount:
+      path: "{{ mount_pt }}"
+      src: "{{ device }}{{ item.num }}"
+      fstype: "{{ fs_type }}"
+      state: present
+    loop: "{{ part_info.partitions }}"
