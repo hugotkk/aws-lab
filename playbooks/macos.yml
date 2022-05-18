@@ -26,9 +26,6 @@
     - "aws-vpn-client"
     - "webex"
     - "android-studio"
-    - "gnupg"
-    - "keepassx"
-    - "nginx"
   - community.general.homebrew:
       name: "{{item}}"
       state: upgraded
@@ -65,6 +62,10 @@
     - "curl"
     - "nmap"
     - "openvpn"
+    - "nginx"
+    - "gnupg"
+
+    - "emacs"
   - community.general.homebrew:
       name: "{{item}}"
       state: absent
@@ -89,6 +90,6 @@
     - "gawk"
     - "gnu-sed"
     - "gnutils"
-    - "pinentry"
     - "ubound"
+    - "keepassx"
   - shell: brew cleanup
